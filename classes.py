@@ -9,7 +9,7 @@ class InvalidArrayDimensionPos(Exception):
     pass
 
 class InvalidArrayDimensionVector(Exception):
-    "Invalid dimensionality of pos"
+    "Invalid dimensionality of vector"
     pass
 
 class Sphere:
