@@ -1,4 +1,5 @@
 import numpy as np
+import numbers
 
 class InvalidDimension(Exception):
     "Invalid number of arguments of pos."
@@ -13,12 +14,13 @@ class InvalidArrayDimensionVector(Exception):
     pass
 
 class Sphere:
-    def __init__(self, pos : np.array, radius : int):
+    def __init__(self, pos : np.array, radius):
         if(len(pos) != 3):
             raise InvalidDimension()
         if(len(pos.shape) != 1):
             raise InvalidArrayDimensionPos()
-        if(type(radius) != int):
+        if(not isinstance(radius, numbers.Number)):
+            #print(type(radius))
             raise TypeError()
         self.pos = pos
         self.radius = radius
@@ -36,7 +38,7 @@ class Ray:
         self.vector = vector/np.linalg.norm(vector)
     
     def sphere_intersect(self, sphere : Sphere) -> int:
-        a = 1 #(self.vector[0]**2 + self.vector[1]**2 + self.vector[2]**2) length of line vector will be always 1
+        #a = 1 #(self.vector[0]**2 + self.vector[1]**2 + self.vector[2]**2) length of line vector will be always 1
         #print("a",a)
         m = self.pos[0] - sphere.pos[0]
         #print("m",m)
@@ -45,16 +47,20 @@ class Ray:
         l = self.pos[2] - sphere.pos[2]
         #print("l",l)
         b = 2*m*self.vector[0] + 2*n*self.vector[1] + 2*l*self.vector[2]
+        #print("A: ", self.vector[0])
+        #print("B: ", self.vector[1])
+        #print("C: ", self.vector[2])
         #print("b",b)
         c = m**2 + n**2 + l**2 - sphere.radius**2
         #print("c",c)
-        delta = b**2 - 4*a*c
+        delta = b**2 - 4*c
         #print("delta",delta)
         if(delta > 0): #this means that we actually intersect
-            t1 = (-b + np.sqrt(delta))/(2*a)
-            t2 = (-b - np.sqrt(delta))/(2*a)
+            t1 = (-b + np.sqrt(delta))/2
+            t2 = (-b - np.sqrt(delta))/2
             #print("t1",t1)
             #print("t2",t2)
             if(t1 > 0 and t2 > 0):
+                #always t2?
                 return min(t1,t2) #when we do intersect we intersect in 2 spots, we want the smaller one because that is the one we are "seeing"
         return None
