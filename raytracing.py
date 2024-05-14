@@ -1,6 +1,5 @@
 import numpy as np
-<<<<<<< HEAD
-=======
+
 import matplotlib.pyplot as plt
 from classes import Ray, Sphere
 
