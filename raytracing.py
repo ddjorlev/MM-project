@@ -1,4 +1,5 @@
 import numpy as np
+
 import matplotlib.pyplot as plt
 from classes import Ray, Sphere, Illum, Light
 import math
@@ -47,7 +48,6 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
 
 plt.imsave('sphere.png', pixels)
         
-
 
 
 
