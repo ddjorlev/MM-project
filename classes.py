@@ -39,7 +39,7 @@ class Illum:
         self.specular = specular
 
 class Sphere:
-    def __init__(self, pos : np.array, radius, color : np.array, illum : Illum, shininess):
+    def __init__(self, pos : np.array, radius, color : np.array, illum : Illum, shininess, reflection : float):
         if(len(pos) != 3):
             raise InvalidDimension()
         if(len(pos.shape) != 1):
@@ -52,12 +52,15 @@ class Sphere:
             raise TypeError()
         if(type(illum) != Illum):
             raise TypeError()
+        if(type(reflection) != float):
+            raise TypeError()
         self.pos = pos
         self.illum = illum
         self.pos = pos
         self.radius = radius
         self.color = color
         self.shininess = shininess
+        self.reflection = reflection
 
 class Light:
     def __init__(self, pos : np.array, illum : Illum):
@@ -108,7 +111,7 @@ class Ray:
         self.color = object.color * np.clip(np.dot(intersection_to_light, normal_to_surface),0,1)
 
     
-    def set_color_cosine_2(self, intersection_point : np.array, object : Sphere, light_source : Light, cam_pos):
+    def set_color_cosine_2(self, intersection_point : np.array, object : Sphere, light_source : Light, cam_pos): #doesn't use reflection
         normal = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
 
@@ -124,3 +127,25 @@ class Ray:
         illumination +=  object.illum.specular * light_source.illum.specular * np.dot(normal, cam_to_light) ** (object.shininess / 4) #TODO: * specular intensity of object
 
         self.color = object.color * np.clip(illumination, 0, 1)
+    
+    def bounce(self, intersection_point : np.array, object : Sphere):
+        normal = normalize(intersection_point - object.pos)
+        self.vector = self.vector - 2 * np.dot(self.vector, normal) * normal
+        self.pos = intersection_point
+
+    def set_color_cosine_bounce(self, intersection_point : np.array, object : Sphere, light_source : Light, cam_pos, cumulative_reflection): #uses reflection
+        normal = normalize(intersection_point - object.pos)
+        intersection_to_light = normalize(light_source.pos - intersection_point)
+
+        illumination = np.array([0,0,0], dtype=float)
+        illumination += object.illum.ambient * light_source.illum.ambient #ambient(base illumination, regardless of position)
+
+        illumination += object.illum.diffuse * light_source.illum.diffuse * np.dot(intersection_to_light, normal)
+
+        intersection_to_cam = cam_pos - intersection_point
+        cam_to_light = normalize(intersection_to_light + intersection_to_cam)
+        illumination +=  object.illum.specular * light_source.illum.specular * np.dot(normal, cam_to_light) ** (object.shininess / 4) #TODO: * specular intensity of object
+
+        self.color = np.float64(self.color)
+        self.color += object.color * np.clip(illumination, 0, 1) * cumulative_reflection
+        return cumulative_reflection * object.reflection
