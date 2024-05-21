@@ -1,5 +1,6 @@
 import numpy as np
 import numbers
+from typing import Union
 
 def normalize(vec):
     return vec/np.linalg.norm(vec)
@@ -62,6 +63,31 @@ class Sphere:
         self.shininess = shininess
         self.reflection = reflection
 
+class Torus:
+    def __init__(self, pos : np.array, major_radius, minor_radius, color : np.array, illum : Illum, shininess, reflection : float):
+        if(len(pos) != 3):
+            raise InvalidDimension()
+        if(len(pos.shape) != 1):
+            raise InvalidArrayDimensionPos()
+        if(len(color) != 3):
+            raise InvalidDimension()
+        if(len(color.shape) != 1):
+            raise InvalidArrayDimensionColor()
+        if(not isinstance(major_radius, numbers.Number) or not isinstance(minor_radius, numbers.Number)):
+            raise TypeError()
+        if(type(illum) != Illum):
+            raise TypeError()
+        if(type(reflection) != float):
+            raise TypeError()
+
+        self.pos = pos
+        self.major_radius = major_radius
+        self.minor_radius = minor_radius
+        self.color = color
+        self.illum = illum
+        self.shininess = shininess
+        self.reflection = reflection
+
 class Light:
     def __init__(self, pos : np.array, illum : Illum):
         if(len(pos) != 3):
@@ -105,13 +131,32 @@ class Ray:
                 return min(t1,t2) #when we do intersect we intersect in 2 spots, we want the smaller one because that is the one we are "seeing"
         return None
     
-    def set_color_cosine_basic(self, intersection_point : np.array, object : Sphere, light_source : Light, cam_pos):
+    def torus_intersect(self, torus : Torus) -> float:
+        cx, cy, cz = torus.pos
+        dx, dy, dz = self.vector
+        ox, oy, oz = self.pos
+        R, r = torus.major_radius, torus.minor_radius
+
+        a = dx**2 + dy**2 + dz**2
+        b = 2 * (ox*dx - cx*dx + oy*dy - cy*dy + oz*dz - cz*dz)
+        c = ox**2 - 2*ox*cx + cx**2 + oy**2 - 2*oy*cy + cy**2 + oz**2 - 2*oz*cz + cz**2 - R**2 + r**2
+        d = 2 * (ox*dx - cx*dx + oy*dy - cy*dy + oz*dz - cz*dz) - 4*(ox**2 - 2*ox*cx + cx**2 + oy**2 - 2*oy*cy + cy**2 + oz**2 - 2*oz*cz + cz**2 - R**2 + r**2)
+        
+        delta = b**2 - 4*a*c
+        if delta > 0:
+            t1 = (-b + np.sqrt(delta))/(2*a)
+            t2 = (-b - np.sqrt(delta))/(2*a)
+            if t1 > 0 and t2 > 0:
+                return min(t1, t2)
+        return None
+    
+    def set_color_cosine_basic(self, intersection_point : np.array, object: Union[Sphere, Torus], light_source : Light, cam_pos):
         normal_to_surface = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
         self.color = object.color * np.clip(np.dot(intersection_to_light, normal_to_surface),0,1)
 
     
-    def set_color_cosine_2(self, intersection_point : np.array, object : Sphere, light_source : Light, cam_pos): #doesn't use reflection
+    def set_color_cosine_2(self, intersection_point : np.array, object: Union[Sphere, Torus], light_source : Light, cam_pos): #doesn't use reflection
         normal = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
 
@@ -128,12 +173,12 @@ class Ray:
 
         self.color = object.color * np.clip(illumination, 0, 1)
     
-    def bounce(self, intersection_point : np.array, object : Sphere):
+    def bounce(self, intersection_point : np.array, object: Union[Sphere, Torus]):
         normal = normalize(intersection_point - object.pos)
         self.vector = self.vector - 2 * np.dot(self.vector, normal) * normal
         self.pos = intersection_point
 
-    def set_color_cosine_bounce(self, intersection_point : np.array, object : Sphere, light_source : Light, cam_pos, cumulative_reflection): #uses reflection
+    def set_color_cosine_bounce(self, intersection_point : np.array, object : Union[Sphere, Torus], light_source : Light, cam_pos, cumulative_reflection): #uses reflection
         normal = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
 

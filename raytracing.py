@@ -49,7 +49,6 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
             if t_min != math.inf:
                 cumulative_reflection = ray.set_color_cosine_bounce(new_pixel + t_min*ray.vector, min_sphere, light, cam_pos, cumulative_reflection)
 
-                ray.bounce(new_pixel + t_min*ray.vector, min_sphere) 
                 if k == 1:
                     bounce_pos = ray.pos
                     line_to_src = light_src_pos - bounce_pos
@@ -64,6 +63,8 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
                     if new_intersection != math.inf:
                         shade = 1 
                     
+                ray.bounce(new_pixel + t_min*ray.vector, min_sphere) 
+                    
             # start = new_pixel + t_min*ray.vector
             # line_direction = bounce(line_direction, )
             # line_direction = line_direction/np.linalg.norm(line_direction)
@@ -72,5 +73,5 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
 
             pixels[width - i - 1, j - 1] = ray.color
 
-plt.imsave('test1.png', pixels)
+plt.imsave('test2.png', pixels)
         
