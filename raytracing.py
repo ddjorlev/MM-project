@@ -10,8 +10,8 @@ camera = np.array(cam_pos)
 light_src_pos = np.array([5,3,1])
 light = Light(light_src_pos, Illum(np.array([0.6,0.6,0.6]), np.array([1,1,1]), np.array([1,1,1])))
 
-width = 200
-height = 200
+width = 800
+height = 800
 
 #camera is at (0,0,1) and we want screen to be centered at (0,0,0)
 ratio = height/width
@@ -36,6 +36,7 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
         line_direction = line_direction/np.linalg.norm(line_direction)
         ray = Ray(new_pixel, line_direction, np.array([0,0,0]))
         cumulative_reflection = 1
+        shade = 0
         for k in range(max_bounce):
             t_min = math.inf #closest intersection
             min_sphere = None
@@ -47,17 +48,29 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
             obj_color = sphere.color
             if t_min != math.inf:
                 cumulative_reflection = ray.set_color_cosine_bounce(new_pixel + t_min*ray.vector, min_sphere, light, cam_pos, cumulative_reflection)
-                ray.bounce(new_pixel + t_min*ray.vector, min_sphere)   
 
+                ray.bounce(new_pixel + t_min*ray.vector, min_sphere) 
+                if k == 1:
+                    bounce_pos = ray.pos
+                    line_to_src = light_src_pos - bounce_pos
+                    new_ray = Ray(bounce_pos, line_to_src, np.array([0,0,0]))
+                    new_intersection = math.inf #closest intersection
+                    intersect_sphere = None
+                    for sphere in spheres:
+                        t = new_ray.sphere_intersect(sphere)
+                        if(t and t < new_intersection):
+                            new_intersection = t
+                            intersect_sphere = sphere
+                    if new_intersection != math.inf:
+                        shade = 1 
+                    
             # start = new_pixel + t_min*ray.vector
             # line_direction = bounce(line_direction, )
             # line_direction = line_direction/np.linalg.norm(line_direction)
-            
+            if (shade != 0 and k == 2):
+                ray.color = ray.color * 0.7
 
             pixels[width - i - 1, j - 1] = ray.color
 
-plt.imsave('sphere.png', pixels)
+plt.imsave('test1.png', pixels)
         
-
-
-
