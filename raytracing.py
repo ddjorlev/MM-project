@@ -68,7 +68,7 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
             
 
            # pixels[width - i - 1, j - 1] = ray.color
-        pixels[width-i-1, j-1] =rayrayray(1)
+        pixels[height-i-1, j-1] =rayrayray(1)
 
 #print(pixels)
 plt.imsave('testMilos.png', pixels)

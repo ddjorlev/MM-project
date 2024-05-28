@@ -28,7 +28,7 @@ def get_illum(func):
     if func == f2:
         return np.array([1,1,1]), np.array([1,1,1]), np.array([1,1,1]) , 80, 0.4
     if func == f3:
-        return np.array([0.7,0.7,0.7]), np.array([0.6,0.6,0.6]), np.array([1,1,1]) , 80, 0.1
+        return np.array([0.7,0.7,0.7]), np.array([0.6,0.6,0.6]), np.array([0.1,0.1,0.1]) , 80, 0.1
     
 def get_color(func):
     if func == f1:
@@ -112,7 +112,7 @@ def rayrayray(f,dfdx, dfdy, dfdz, originPointT0, directionV, lightOrigin, cumula
     itMax=250
 
 
-    stepsize=0.1
+    stepsize=0.01
     t=stepsize 
     
     stepDirection = stepsize * directionV
@@ -179,8 +179,8 @@ def rayrayray(f,dfdx, dfdy, dfdz, originPointT0, directionV, lightOrigin, cumula
     else:
         return black, np.array([np.inf, np.inf, np.inf]), 1
 
-width = 300
-height = 300
+width = 480
+height = 480
 pixels = np.empty(shape = (height, width, 3))
 
 
@@ -196,6 +196,8 @@ height_pos = [-ratio, ratio] #minimum and maximum height
 
 functions = [f1, f2, f3]
 start_time = time.time()
+# samples = 2
+# for k in range(samples):
 for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)):
     for j, x in enumerate(np.linspace(width_pos[0], width_pos[1], width)):
         pixel = np.array([x, y, 0])
@@ -227,10 +229,14 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)):
                 normal = normalize(betterPoint - get_center(f_min))
                 direction = direction - 2 * np.dot(direction, normal) * normal
                 origin = betterPoint
-            pixels[width-i-1, j-1] += colorToBePlaced
+            pixels[height-i-1, j-1] += colorToBePlaced
             if(f_min == 0):
                 break
 
+# for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)):
+#     for j, x in enumerate(np.linspace(width_pos[0], width_pos[1], width)):
+#         pixels[width-i-1, j-1] = pixels[width-i-1, j-1]/samples
+
 print("time taken: ", time.time() - start_time)
-plt.imsave('C2.png', pixels)
+plt.imsave('C200.png', pixels)
 print("time taken: ", time.time() - start_time)
