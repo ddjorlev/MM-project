@@ -158,6 +158,32 @@ class Ray:
         
         return min(real_roots, default=None)
     
+    def intersection(self, object):
+        epsilon = 1e-14  # Small value for convergence
+        max_iter = 30  # Maximum iterations
+
+        # Initial guess for intersection point
+        t = 0.0
+        pos = self.pos + t * self.vector
+
+        for _ in range(max_iter):
+            # Calculate function value and its derivative
+            f = np.linalg.norm(pos - object.pos) - object.radius
+            df = np.dot(self.vector, pos - object.pos)
+
+            # Update t using Newton's method
+            t = t - f / df
+
+            # Update intersection point
+            pos = self.pos + t * self.vector
+
+            # Check convergence
+            if abs(f) < epsilon:
+                return pos
+
+        # Return None if no intersection found within max iterations
+        return None
+    
     def set_color_cosine_basic(self, intersection_point : np.array, object: Union[Sphere, Torus], light_source : Light, cam_pos):
         normal_to_surface = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
