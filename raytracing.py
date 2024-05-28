@@ -6,8 +6,8 @@ import math
 
 
 def rayrayray(cameraOrigin):
-    it=0;
-    itMax=250;
+    it=0
+    itMax=250
     stepsize=0.1
     t=stepsize
     while(it<itMax):
@@ -42,7 +42,7 @@ max_bounce = 4
 for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
     for j, x in enumerate(np.linspace(width_pos[0], width_pos[1], width)[1:]):
         new_pixel = np.array([x,y,0])
-        #np.append(pixels, new_pixel)
+        np.append(pixels, new_pixel)
         start = camera
         line_direction = new_pixel - start
         
@@ -68,7 +68,7 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
             
 
            # pixels[width - i - 1, j - 1] = ray.color
-        pixels[width-i-1, j-1] =rayrayray
+        pixels[width-i-1, j-1] =rayrayray(1)
 
 #print(pixels)
 plt.imsave('testMilos.png', pixels)
