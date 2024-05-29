@@ -10,8 +10,8 @@ camera = np.array(cam_pos)
 light_src_pos = np.array([5,3,1])
 light = Light(light_src_pos, Illum(np.array([0.6,0.6,0.6]), np.array([1,1,1]), np.array([1,1,1])))
 
-width = 200
-height = 200
+width = 800
+height = 800
 
 #camera is at (0,0,1) and we want screen to be centered at (0,0,0)
 ratio = height/width
@@ -88,8 +88,8 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)[1:]):
         
 
         if shade != 0:
-            pixels[width - i - 1, j - 1] *= 0.7
+            pixels[i, width - j + 1] *= 0.7
 
 
-plt.imsave('sphere_shade.png', pixels)
+plt.imsave('sphere_final.png', pixels)
         

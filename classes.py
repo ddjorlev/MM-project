@@ -63,36 +63,6 @@ class Sphere:
         self.shininess = shininess
         self.reflection = reflection
 
-class Torus:
-    def __init__(self, pos : np.array, major_radius, minor_radius, axis: np.array, color : np.array, illum : Illum, shininess, reflection : float):
-        if(len(pos) != 3):
-            raise InvalidDimension()
-        if(len(pos.shape) != 1):
-            raise InvalidArrayDimensionPos()
-        if(len(axis) != 3):
-            raise InvalidDimension()
-        if(len(axis.shape) != 1):
-            raise InvalidArrayDimensionPos()
-        if(len(color) != 3):
-            raise InvalidDimension()
-        if(len(color.shape) != 1):
-            raise InvalidArrayDimensionColor()
-        if(not isinstance(major_radius, numbers.Number) or not isinstance(minor_radius, numbers.Number)):
-            raise TypeError()
-        if(type(illum) != Illum):
-            raise TypeError()
-        if(type(reflection) != float):
-            raise TypeError()
-
-        self.pos = pos
-        self.major_radius = major_radius
-        self.minor_radius = minor_radius
-        self.axis = axis
-        self.color = color
-        self.illum = illum
-        self.shininess = shininess
-        self.reflection = reflection
-
 class Light:
     def __init__(self, pos : np.array, illum : Illum):
         if(len(pos) != 3):
@@ -136,61 +106,13 @@ class Ray:
                 return min(t1,t2) #when we do intersect we intersect in 2 spots, we want the smaller one because that is the one we are "seeing"
         return None
     
-    def torus_intersect(self, torus: Torus) -> int:
-        O = self.pos - torus.pos
-        D = self.vector
-
-        R2 = torus.major_radius ** 2
-        r2 = torus.minor_radius ** 2
-
-        DD = np.dot(D, D)
-        DO = np.dot(D, O)
-        OO = np.dot(O, O)
-        A = DD * DD
-        B = 4 * DO * DD
-        C = 2 * DD * (OO - (R2 + r2)) + 4 * DO * DO + 4 * R2 * D[2] * D[2]
-        D = 4 * (OO - (R2 + r2)) * DO + 8 * R2 * O[2] * D[2]
-        E = (OO - (R2 + r2)) * (OO - (R2 + r2)) - 4 * R2 * (r2 - O[2] * O[2])
-
-        coeffs = [A, B, C, D, E]
-        roots = np.roots(coeffs)
-        real_roots = [r.real for r in roots if r.imag == 0 and r.real > 0]
-        
-        return min(real_roots, default=None)
-    
-    def intersection(self, object):
-        epsilon = 1e-14  # Small value for convergence
-        max_iter = 30  # Maximum iterations
-
-        # Initial guess for intersection point
-        t = 0.0
-        pos = self.pos + t * self.vector
-
-        for _ in range(max_iter):
-            # Calculate function value and its derivative
-            f = np.linalg.norm(pos - object.pos) - object.radius
-            df = np.dot(self.vector, pos - object.pos)
-
-            # Update t using Newton's method
-            t = t - f / df
-
-            # Update intersection point
-            pos = self.pos + t * self.vector
-
-            # Check convergence
-            if abs(f) < epsilon:
-                return pos
-
-        # Return None if no intersection found within max iterations
-        return None
-    
-    def set_color_cosine_basic(self, intersection_point : np.array, object: Union[Sphere, Torus], light_source : Light, cam_pos):
+    def set_color_cosine_basic(self, intersection_point : np.array, object: Sphere, light_source : Light, cam_pos):
         normal_to_surface = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
         self.color = object.color * np.clip(np.dot(intersection_to_light, normal_to_surface),0,1)
 
     
-    def set_color_cosine_2(self, intersection_point : np.array, object: Union[Sphere, Torus], light_source : Light, cam_pos): #doesn't use reflection
+    def set_color_cosine_2(self, intersection_point : np.array, object: Sphere, light_source : Light, cam_pos): #doesn't use reflection
         normal = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
 
@@ -207,12 +129,12 @@ class Ray:
 
         self.color = object.color * np.clip(illumination, 0, 1)
     
-    def bounce(self, intersection_point : np.array, object: Union[Sphere, Torus]):
+    def bounce(self, intersection_point : np.array, object: Sphere):
         normal = normalize(intersection_point - object.pos)
         self.vector = self.vector - 2 * np.dot(self.vector, normal) * normal
         self.pos = intersection_point
 
-    def set_color_cosine_bounce(self, intersection_point : np.array, object: Union[Sphere, Torus], light_source : Light, cam_pos, cumulative_reflection): #uses reflection
+    def set_color_cosine_bounce(self, intersection_point : np.array, object: Sphere, light_source : Light, cam_pos, cumulative_reflection): #uses reflection
         normal = normalize(intersection_point - object.pos)
         intersection_to_light = normalize(light_source.pos - intersection_point)
 
