@@ -92,11 +92,6 @@ def reflection(v, T, lightOrigin, dfdx, dfdy, dfdz):
     return result
 
 def rayrayray(f,dfdx, dfdy, dfdz, originPointT0, directionV, lightOrigin, cumulative_reflection):
-    
-    #directionV - > the direction of the camera
-    #g(t) = f(x0 + a*t, y0 + b*t, z0+ + c*t)
-    #x0 is the orginalPointT0
-    #directionV = [a, b, c]
 
     g = lambda t: f(np.array([originPointT0[0]+t*directionV[0], originPointT0[1]+t*directionV[1], originPointT0[2]+t*directionV[2]]))
     
@@ -179,8 +174,8 @@ def rayrayray(f,dfdx, dfdy, dfdz, originPointT0, directionV, lightOrigin, cumula
     else:
         return black, np.array([np.inf, np.inf, np.inf]), 1
 
-width = 480
-height = 480
+width = 300
+height = 300
 pixels = np.empty(shape = (height, width, 3))
 
 

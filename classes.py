@@ -56,7 +56,6 @@ class Sphere:
             raise TypeError()
         self.pos = pos
         self.illum = illum
-        self.pos = pos
         self.radius = radius
         self.color = color
         self.shininess = shininess
