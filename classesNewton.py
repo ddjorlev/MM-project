@@ -87,7 +87,7 @@ def Newton(s: Sphere, lineDirection: np.array, x0:float ,epsilon,max_iter):
     return xn
 
 
-def Ray(itMax: int, stepsize: int, camera: np.array, lineDirection:np.array, sphere: Sphere, newton: Newton, light: Light, cumulative_reflection):
+def Ray(itMax: int, stepsize: int, camera: np.array, lineDirection:np.array, spheres:list[Sphere] , newton: Newton, light: Light, cumulative_reflection):
    
     it=0
     t=stepsize
@@ -98,10 +98,27 @@ def Ray(itMax: int, stepsize: int, camera: np.array, lineDirection:np.array, sph
 
     newPoint= prevPoint + stepsize
 
-    prevSign=sphere.sign(camera)
-    currSign=sphere.sign(newPoint)
+    
+    #p.s. spheres is a list of spheres
+    numberOfSpheres = len(spheres)
+
+    #an array for storing the previous signs of the spheres
+    prevSign = [0] * numberOfSpheres
+
+    for i in range(numberOfSpheres):
+        prevSign[i]=spheres[i].sign(camera)
+    
+
+    #an array for storing the new signs of the spheres
+    currSign = [0] * numberOfSpheres
+
+    for i in range(numberOfSpheres):
+        currSign[i]=spheres[i].sign(newPoint)
 
     intersection=0
+
+    #to track which spehere was hit
+    idSphere=0
 
     while(it< itMax):
         
@@ -111,41 +128,58 @@ def Ray(itMax: int, stepsize: int, camera: np.array, lineDirection:np.array, sph
         prevPoint = newPoint
         newPoint=newPoint + stepDirection
 
-        prevSign=currSign
-        currSign = sphere.sign(newPoint)
+        for i in range(numberOfSpheres):
+            prevSign[i]=currSign[i]
+
+        for i in range(numberOfSpheres):
+            currSign[i]=spheres[i].sign(newPoint)
         
         newtonPoint=0
         
         betterPoint=newPoint
         
-        intersection=0
-        if currSign != prevSign:
+
+        for i in range(numberOfSpheres):
             
-            startOfApproximation = (t + (t-stepsize) ) /2
+            #check if there has been a change in the sign of any of the function
+            #and if so, calculte that point using the Newton method
+            if currSign[i] != prevSign[i]:
+                
+                startOfApproximation = (t + (t-stepsize) ) /2
 
-            newtonPoint = newton(sphere, lineDirection ,startOfApproximation, 1e-10, 100)
-            betterPoint = camera + newtonPoint*lineDirection
-            intersection =1
-            break
+                newtonPoint = newton(spheres[i], lineDirection ,startOfApproximation, 1e-10, 100)
+                betterPoint = camera + newtonPoint*lineDirection
+                
+                intersection =1
+                
+                #returning the id of sphere which was hit
+                idSphere=i
+                
+                break
         
+        #if there has been an intersection exit the while loop -> we got the closest point
+        if intersection ==1:
+            break
+    
     black = np.array([0.0, 0.0, 0.0])
-    colorToAdd = np.array([0.0, 0.0, 0.0])
-   
-    colorToAdd += sphere.illum.ambient * light.illum.ambient
+    if(intersection == 1):
+        black = np.array([0.0, 0.0, 0.0])
+        colorToAdd = np.array([0.0, 0.0, 0.0])
     
-    centerOfTheSphere=sphere.center()
+        colorToAdd += spheres[idSphere].illum.ambient * light.illum.ambient
+        
+        centerOfTheSphere=spheres[idSphere].center()
 
-    normal = normalize(betterPoint - centerOfTheSphere)
-    intersection_to_light = normalize(light.pos - betterPoint)
-    
-    colorToAdd += sphere.illum.diffuse * light.illum.diffuse * np.dot(intersection_to_light,normal)
-    
-    intersection_to_cam = camera - betterPoint
+        normal = normalize(betterPoint - centerOfTheSphere)
+        intersection_to_light = normalize(light.pos - betterPoint)
+        
+        colorToAdd += spheres[idSphere].illum.diffuse * light.illum.diffuse * np.dot(intersection_to_light,normal)
+        
+        intersection_to_cam = camera - betterPoint
 
-    cam_to_light = normalize(betterPoint + intersection_to_cam)
-    colorToAdd += sphere.illum.specular * light.illum.specular * np.dot(normal, cam_to_light) ** (sphere.shininess/4)
-    
-    if intersection ==1 :
-        return sphere.color * np.clip(colorToAdd, 0, 1) * cumulative_reflection, betterPoint, sphere.reflection
+        cam_to_light = normalize(betterPoint + intersection_to_cam)
+        colorToAdd += spheres[idSphere].illum.specular * light.illum.specular * np.dot(normal, cam_to_light) ** (spheres[idSphere].shininess/4)
+
+        return spheres[idSphere].color * np.clip(colorToAdd, 0, 1) * cumulative_reflection, betterPoint, spheres[idSphere].reflection, intersection, idSphere
     else:
-        return black, np.array([np.inf, np.inf, np.inf]), 1
+        return black, np.array([np.inf, np.inf, np.inf]), 1, intersection, idSphere

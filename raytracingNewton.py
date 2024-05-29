@@ -3,8 +3,8 @@ from classesNewton import  Illum, Sphere, Newton, normalize, Light, Ray
 import matplotlib.pyplot as plt
 
 
-width = 300
-height = 300
+width = 200
+height = 200
 
 #pixels = np.empty(shape=(height, width, 3))
 pixels = np.zeros(shape=(height, width, 3))
@@ -36,32 +36,18 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)):
         cumulative_reflection = 1
         
         for bounce in range(5):
-            t_min = np.inf
-            f_min = 0
-            point_min = 0
-            for func in functions:
-                #ray takes as parameters:
-                #number of Iterations, stepsize, coordinates of the camera, direction of the view vector,
-                #a Sphere, the Newton method, the light and the cumulative reflection 
-                colorToBePlaced, betterPoint, _ = Ray(250, 0.01, camera, direction, func, Newton, light, cumulative_reflection)
-                temp = np.linalg.norm(betterPoint - origin)
-                if temp < t_min and temp != np.inf:
-                    t_min = temp 
-                    f_min = func
-                    point_min = betterPoint
-            if f_min != 0:
-                colorToBePlaced, betterPoint, obj_reflection = Ray(250, 0.01, camera, direction, f_min, Newton, light, cumulative_reflection)
-                cumulative_reflection *= obj_reflection
-            else:
-                colorToBePlaced = np.array([0,0,0])
             
-            if(f_min != 0):
-                normal = normalize(betterPoint - f_min.center())
+            #Ray is called with: number of Iterations, stepsize, the coordinates of the camera, the direction, a list of spheres, the Newton method, light, cumulative_reflection
+            #Returns, the color as np.array, the coordinates of the better point calculated with the Newton method, obj_reflection, if there has been an intersection reflection=1 otherwise is 0, id of the sphere which was hit
+            colorToBePlaced, betterPoint, obj_reflection, intersection, idFunction = Ray(250, 0.01, camera, direction, functions, Newton, light, cumulative_reflection)
+            if intersection == 1:
+                cumulative_reflection *= obj_reflection
+                normal = normalize(betterPoint - functions[idFunction].center())
                 direction = direction - 2 * np.dot(direction, normal) * normal
                 origin = betterPoint
-           
-            pixels[height-i-1, j-1] += colorToBePlaced
-            if(f_min == 0):
+                pixels[height-i-1, j-1] += colorToBePlaced
+            else:
+                pixels[height-i-1, j-1] += np.array([0,0,0])
                 break
 
 
