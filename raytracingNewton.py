@@ -3,8 +3,8 @@ from classesNewton import  Illum, Sphere, Newton, normalize, Light, Ray, Cone
 import matplotlib.pyplot as plt
 
 
-width = 100
-height = 100
+width = 200
+height = 200
 
 #pixels = np.empty(shape=(height, width, 3))
 pixels = np.zeros(shape=(height, width, 3))
@@ -25,7 +25,7 @@ height_pos = [-ratio, ratio] #minimum and maximum height
 #pos : np.array, radius, color : np.array, illum : Illum, shininess, reflection : float, camera: np.array, lineDirection: np.array):
 functions = [Sphere(np.array([-5, -5, -5]), 0.7, np.array([57/256, 68/256, 188/256]), Illum(np.array([1,1,1]), np.array([1,1,1]), np.array([1,1,1])), 80, 0.4, camera),
            # Sphere(np.array([0.2, -0.3, -2]), 0.7, np.array([123/256, 6/256, 35/256]), Illum(np.array([1,1,1]), np.array([1,1,1]), np.array([1,1,1])), 80, 0.4, camera),
-            Cone(np.array([0.2, -0.3, 0.1]), 0.7, np.array([123/256, 6/256, 35/256]), Illum(np.array([1,1,1]), np.array([1,1,1]), np.array([1,1,1])), 80, 0.4, camera),
+            Cone(np.array([2, 3, 4]), 0.4, 0.7, np.array([15/256, 90/256, 40/256]), Illum(np.array([1,1,1]), np.array([1,1,1]), np.array([1,1,1])), 80, 0.4, camera),
             Sphere(np.array([0, -1000, 0]), 999, np.array([150/256, 70/256, 150/256]), Illum(np.array([0.1, 0.1, 0.1]), np.array([0.6, 0.6, 0.6]), np.array([1,1,1])), 80, 0.1, camera)]
 
 for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)):
@@ -55,10 +55,11 @@ for i, y in enumerate(np.linspace(height_pos[0], height_pos[1], height)):
 
 
 #Temporarily fixing when some valuse are bigger than 1
-for i in range(height):
-    for j in range(width):
-        for k in range(3):
-            if pixels[i][j][k] >1:
-                pixels[i][j][k]=0.99
+pixels = np.clip(pixels, 0,1)
+# for i in range(height):
+#     for j in range(width):
+#         for k in range(3):
+#             if pixels[i][j][k] >1:
+#                 pixels[i][j][k]=0.99
 
-plt.imsave('Q1.png', pixels)
+plt.imsave('cone_trial.png', pixels)

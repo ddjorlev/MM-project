@@ -73,77 +73,57 @@ class Sphere:
     
 
 class Cone:
-    def __init__(self, pos : np.array, radius, color : np.array, illum : Illum, shininess, reflection : float, camera: np.array):
-        #pos = [x,y,z]
+    def __init__(self, pos: np.array, height: float, radius: float, color: np.array, illum: Illum, shininess, reflection: float, camera: np.array):
         self.pos = pos
-        self.illum = illum
-        self.radius = radius
+        self.height = height
         self.color = color
+        self.illum = illum
         self.shininess = shininess
         self.reflection = reflection
-        self.camera=camera
+        self.camera = camera
+        self.apex = pos
+        self.base_radius = radius
+        self.camera = camera
 
-    #Function for calculating the value of a cone in the point x[x1, y1, z1]
     def calculateF(self, x: np.array):
-        if x[0] == 0:
-            firstPart =0
-        else:
-            firstPart=(self.pos[0]**2)/(x[0]**2)
-        
-        if x[1] == 0:
-            secondPart =0
-        else:
-            secondPart=(self.pos[1]**2)/(x[1]**2)
-        
-        if x[2] == 0:
-            thirdPart =0
-        else:
-            thirdPart=(self.pos[2]**2)/(x[2]**2)
-        
+        k = (self.height / self.base_radius) ** 2
+        return (x[0] - self.pos[0]) ** 2 + (x[1] - self.pos[1]) ** 2 - k * (x[2] - self.pos[2]) ** 2
 
-        return firstPart + secondPart - thirdPart
-    
-    #Function for calculating the first derrivative of a cone in the point t[x, y, z]
-    def dx(self, t:np.array) :
-        return 2*self.pos[0]/(t[0] **2)
-    
-    #Function for calculating the second derrivative of a cone in the point t[x, y, z]
-    def dy(self, t:np.array) :
-        return  2*self.pos[1]/(t[1] **2)
-    
-    #Function for calculating the third derrivative of a cone in the point t[x, y, z]
-    def dz(self, t:np.array) :
-        return  -2*self.pos[2]/(t[2] **2)
-    
-    #Function g(t):=f(x0 + a*t, y0 + a*t, z0 + a*t)
-    #used to find the exact point of intersection
-    def g(self, t:np.array, lineDirection:np.array) :
-        newX=self.camera[0]+t*lineDirection[0]
-        newY=self.camera[1]+t*lineDirection[1]
-        newZ=self.camera[2]+t*lineDirection[2]
-                                                 
+    def dx(self, t: np.array):
+        return 2 * (t[0] - self.pos[0])
+
+    def dy(self, t: np.array):
+        return 2 * (t[1] - self.pos[1])
+
+    def dz(self, t: np.array):
+        k = (self.height / self.base_radius) ** 2
+        return -2 * k * (t[2] - self.pos[2])
+
+    def g(self, t: float, lineDirection: np.array):
+        newX = self.camera[0] + t * lineDirection[0]
+        newY = self.camera[1] + t * lineDirection[1]
+        newZ = self.camera[2] + t * lineDirection[2]
         return self.calculateF(np.array([newX, newY, newZ]))
-    
-    #Derrivative of the function above
-    def gdot(self, t:np.array, lineDirection:np.array) :
-        return (
-            lineDirection[0] * self.dx(np.array([self.camera[0] +t*lineDirection[0], self.camera[1]+t*lineDirection[1], self.camera[2]+t*lineDirection[2]])) +
-            lineDirection[1] * self.dy(np.array([self.camera[0] +t*lineDirection[0], self.camera[1]+t*lineDirection[1], self.camera[2]+t*lineDirection[2]])) +
-            lineDirection[2] * self.dz(np.array([self.camera[0] +t*lineDirection[0], self.camera[1]+t*lineDirection[1], self.camera[2]+t*lineDirection[2]]))
-            )
-    
-    #function for calculating the sign in the point t[x, y, z]
-    def sign(self, t:np.array):
+
+    def gdot(self, t: float, lineDirection: np.array):
+        point = np.array([
+            self.camera[0] + t * lineDirection[0],
+            self.camera[1] + t * lineDirection[1],
+            self.camera[2] + t * lineDirection[2]
+        ])
+        return (lineDirection[0] * self.dx(point) +
+                lineDirection[1] * self.dy(point) +
+                lineDirection[2] * self.dz(point))
+
+    def sign(self, t: np.array):
         s = np.sign(self.calculateF(t))
         if s == 0:
-            s=1
+            s = 1
         return s
-    
-    #Returning the center of the sphere
+
     def center(self):
-        c = np.array([self.pos[0], self.pos[1], self.pos[2]])
-        return c
-    
+        return self.pos
+  
 
 class Cylinder:
     def __init__(self, pos : np.array, radius, color : np.array, illum : Illum, shininess, reflection : float, camera: np.array):
